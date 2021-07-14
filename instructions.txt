@@ -1,0 +1,26 @@
+Unzip the whole folder
+
+Install the Nvidia driver.
+Step 1: disable nouveau
+./nvidia-driver-install-step1.sh
+reboot the system
+
+Step 2:install driver
+./nvidia-driver-install-step2.sh
+
+
+Install and start Inference Server
+./install_start_ifs.sh prod
+OR
+CUDA_VISIBLE_DEVICES=0 ./install_start_ifs.sh prod
+
+Start Inference Server
+./start_ifs.sh
+OR
+CUDA_VISIBLE_DEVICES=2 ./start_ifs.sh
+
+Stop Inference Server
+./stop_ifs.sh 
+
+Patch Inference Server
+./patch_ifs.sh prod

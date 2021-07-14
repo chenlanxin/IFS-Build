@@ -1,0 +1,11 @@
+#!/bin/bash
+
+set -e
+
+pm2 status
+sleep 3
+ifs-env triton start
+sleep 5
+ifs-env predictor start
+ifs-env annotation start
+

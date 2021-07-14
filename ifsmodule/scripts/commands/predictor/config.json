@@ -1,0 +1,8 @@
+[
+    {
+        "name": "predictor",
+        "script": "./perform_pred.py",
+        "interpreter" : "/home/biomind/.biomind/environment/python/3.9.5/bin/python3",
+        "cwd": "/home/biomind/.biomind/ifs/ifsmodule/predictor/current"
+    }
+]

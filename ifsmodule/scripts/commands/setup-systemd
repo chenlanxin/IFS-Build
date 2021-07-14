@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+
+TEMP_FILE=$(mktemp)
+
+cleanup() {
+    [ -f $TEMP_FILE ] && rm -f $TEMP_FILE
+}
+
+trap cleanup EXIT
+
+echo "[Unit]" >> $TEMP_FILE
+echo "Description=Autoboot pm2" >> $TEMP_FILE
+echo "After=network.target" >> $TEMP_FILE
+echo "" >> $TEMP_FILE
+echo "[Service]" >> $TEMP_FILE
+echo "ExecStart=/bin/bash -c \"source /home/biomind/.profile; ifs-env start; while true; do sleep 5; done\"" >> $TEMP_FILE
+echo "User=biomind" >> $TEMP_FILE
+echo "Type=simple" >> $TEMP_FILE
+echo "" >> $TEMP_FILE
+echo "[Install]" >> $TEMP_FILE
+echo "WantedBy=multi-user.target" >> $TEMP_FILE
+
+SERVICE_FILE=/etc/systemd/system/ifs-environment.service
+sudo mv $TEMP_FILE $SERVICE_FILE
+sudo chmod 644 $SERVICE_FILE
+sudo systemctl enable $SERVICE_FILE

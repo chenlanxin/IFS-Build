@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+MODULE_DIR=$(realpath "$(dirname $0)")
+MODULE=$(basename $MODULE_DIR)
+
+pid=$(pm2 pid $MODULE)
+echo Predictor$pid
+if [[ $pid = "" || $pid = "0" ]]; then
+    pm2 start $MODULE_DIR/config.json -l $IFS_LOG_PATH/pm2
+else
+    echo "$MODULE already started"
+fi

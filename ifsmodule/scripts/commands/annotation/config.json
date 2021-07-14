@@ -1,0 +1,10 @@
+[
+    {
+        "name": "annotation",
+        "script": "./manage.py",
+        "args": [
+            "runserver", "9999"],
+        "interpreter" : "/home/biomind/.biomind/environment/python/3.9.5/bin/python3",
+        "cwd": "/home/biomind/.biomind/ifs/ifsmodule/annotation/current"
+    }
+]
