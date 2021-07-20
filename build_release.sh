@@ -1,5 +1,5 @@
 cur_dir=/home/biomind/ifs-release
-build_dir=/home/biomind/ifs-build-0712
+build_dir=/home/biomind/ifs-build-0719
 mkdir -p $build_dir
 
 # # copy nvidia-driver
@@ -11,8 +11,8 @@ tar -czvf $build_dir/environment.tgz ./environment
 # # build models
 tar -czvf $build_dir/models.tgz ./models
 
-# # build PredictorMock
-# tar -czvf $build_dir/PredictorMock.tgz ./PredictorMock
+# build PredictorMock
+tar -czvf $build_dir/PredictorMock.tgz ./PredictorMock
 
 
 # cp scripts and instructions
@@ -20,6 +20,7 @@ cp ./install_start_ifs.sh $build_dir/
 cp ./start_ifs.sh $build_dir/
 cp ./stop_ifs.sh $build_dir/
 cp ./instructions.txt $build_dir/
+cp ./config.json $build_dir/
 
 # build ifs modules
 # # build ml module

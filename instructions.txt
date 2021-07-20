@@ -17,10 +17,32 @@ CUDA_VISIBLE_DEVICES=0 ./install_start_ifs.sh prod
 Start Inference Server
 ./start_ifs.sh
 OR
-CUDA_VISIBLE_DEVICES=2 ./start_ifs.sh
+CUDA_VISIBLE_DEVICES=0 ./start_ifs.sh
 
 Stop Inference Server
 ./stop_ifs.sh 
 
 Patch Inference Server
 ./patch_ifs.sh prod
+
+
+model path:
+/home/biomind/.biomind/ifs/models
+
+ifsmodule path:
+/home/biomind/.biomind/ifs/ifsmodule
+
+update ifs config:
+vim /home/biomind/.biomind/ifs/config.json
+
+start whole ifs:
+ifs-env start
+
+pm2 delete all
+ifs-env predictor start
+ifs-env triton start
+ifs-env annotation start
+
+
+update ml codes
+/home/biomind/.biomind/ifs/ifsmodule/mlmodule/1.1

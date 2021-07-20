@@ -6,13 +6,23 @@ import requests
 import json 
 import base64
 import zlib
+import json 
+from pprint import pprint
 
-mock_mode = 'off'
-queue_host = "https://192.168.2.46"
+with open('/home/biomind/.biomind/ifs/config.json') as j:
+    cfg = json.load(j)
+pprint(cfg)
+
+mock_mode = cfg['mock_mode']
+queue_host = cfg['queue_host']
+annotation_host = cfg['annotation_host']
+task_num = cfg['task_num']
+
+# mock_mode = 'on'
 # queue_host = "http://127.0.0.1:8000"
-# queue_host = "http://192.168.2.137:8001"
-task_num = 1
+
 get_tasks_url = f"{queue_host}/euler/get_task/{task_num}"
+update_task_url = f"{queue_host}/euler/update_task"
 #TODO
 post_callback_url = f"{queue_host}/tasks/"
 
@@ -21,7 +31,6 @@ pred_map = {
     'headneckcta_predictor': 'pred_hdnkcta',
     'archcta_predictor':     'pred_archcta',
     'corocta_predictor':     'pred_corocta',
-    'headcta_predictor':     'pred_headcta',
     'lungct':      'pred_lungct'
 }
 mode = 'ifstime'
@@ -193,18 +202,29 @@ def get_mock_tasks():
         print(f"failed to GET {get_tasks_url}: {e}")
         return []
 
-def download_inputdata(url, task_uid):
-    tmp_file = f'/home/biomind/.biomind/ifs/cache/nii/{task_uid}.nii.gz'
+def download_inputdata(url, task_uid, predictor):
+    tmp_dir = f'/home/biomind/.biomind/ifs/cache/nii/{predictor}'
+    if not os.path.exists(tmp_dir):
+        os.mkdir(tmp_dir)
+    tmp_file = os.path.join(tmp_dir, f'{task_uid}.nii.gz')
     cmd = f'curl {url} -o {tmp_file} -k'
     os.system(cmd)
     return tmp_file
 
-#TODO
-def post_callback(post_callback_url):
-    pass
+def update_task(update_task_url, input):
+    try:
+        resp = requests.post(update_task_url, json=input, verify=False)
+        print(resp.status_code)
+        if resp.status_code == 200:
+            status = input['status']
+            print(f'update task status to {status}.')
+        else:
+            print(f"failed to POST {update_task_url}: {resp.status_code}")
+    except Exception as e:
+        print(f"failed to POST {update_task_url}: {e}")
 
 def request_annotation(input_data):
-    anno_url = "http://localhost:9999/annotation/predict/"
+    anno_url = f"{annotation_host}/annotation/predict/"
     # res_protocol_path = os.path.join(cache_path, "payload_output.json")
     # input_data = {
     #     "job_uid": job_uid,
@@ -215,6 +235,7 @@ def request_annotation(input_data):
     res = requests.post(anno_url, data=input_data)
     print(res.status_code)
     print(f"Check {input_data['cache_path']} for result protocols.")
+    return res.json()
 
 def post_duration_prom(duration_name, task_name, duration):
     prom_url = "http://localhost:9091/metrics/job/predict/instance/machine"
@@ -239,27 +260,46 @@ def write_res2csv(csv_path, row_list):
 while mock_mode == 'off':
     tasks = get_tasks(get_tasks_url)
     while len(tasks) == 0:
-        time.sleep(1)
+        time.sleep(5)
         print('No task found.')
         tasks = get_tasks(get_tasks_url)
     for task in tasks:
         try:
+            # update task status
+            task['status'] = 10
+            print(task)
+            update_task(update_task_url, task)
+
             # ['auto', 'config', 'status', 'job_uid', 'task_uid', 'predictor', 'study_uid', 'cache_path', 'status_code', 'classifier_series']
             payload = task['payload']
             ts = time.time()
             predictor = task['predictor']
             job_uid = payload['job_uid']
             task_uid = payload['task_uid']
-            cache_path = '/home/biomind/.biomind/ifs/cache/headcta' #payload['cache_path']
+            cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}' #payload['cache_path']
             classifier_series = payload['classifier_series']
             vol_files = []
             for k, v in classifier_series.items():
-                vol_file = v['vol_url']
-                break
+                if v['type'] == "CTA":
+                    vol_id = k
+                    vol_file = v['vol_url']
+                    break
             if not os.path.exists(cache_path):
                 os.makedirs(cache_path)
-            tmp_file = download_inputdata(vol_file, task_uid)
+            print(f'Predicting {predictor}...')
+
+            tmp_file = download_inputdata(vol_file, task_uid, predictor)
+            print(tmp_file)
             result, pred_duration = eval(pred_map[predictor])(tmp_file, task_uid, cache_path)
+            print(result)
+            if result is not None:
+                # update task: error
+                task['status'] = 30
+                task['payload']['status_code'].append(result)
+                print(task)
+                update_task(update_task_url, task)
+                continue
+
             task_duration = time.time() - ts 
             call_back = {
                 'job_uid': job_uid,
@@ -270,22 +310,39 @@ while mock_mode == 'off':
                 'pred_duration': pred_duration
             }
             print(call_back)
-            os.system(f'rm -f {tmp_file}')
-
+            
             # do annotation
             if 1: # predictor == 'archcta' or predictor == 'headneckcta':
                 input_data = {
                     "job_uid": job_uid,
                     'task_uid': task_uid,
+                    'vol_id': vol_id,
                     'predictor': predictor,
                     "cache_path": cache_path,
                 }
                 ts = time.time()
-                request_annotation(input_data)
+                anno_res = request_annotation(input_data)
                 anno_duration = time.time() - ts
             else:
                 anno_duration = 0
 
+            # update task: finished
+            task['status'] = 20
+            task['payload'].update(anno_res)
+            update_task(update_task_url, task)
+            os.system(f'rm -f {tmp_file}')
+
+            call_back = {
+                'job_uid': job_uid,
+                'task_uid': task_uid,
+                'predictor': predictor,
+                'task_status': 'done',
+                'task_duration': task_duration,
+                'pred_duration': pred_duration,
+                'anno_duration': anno_duration
+            }
+            print(call_back)
+            
             # post duration to dashboard
             try:
                 post_duration_prom('duration_job', predictor, task_duration)
@@ -294,35 +351,48 @@ while mock_mode == 'off':
             except:
                 print('No prometheus service found.')
             
-            # write duration to csv file
-            csv_path = '/home/biomind/.biomind/ifs/cache/durations.csv'
-            # from datetime import datetime
-            # datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            if not os.path.exists(csv_path):
-                head_row = [
-                    'predictor',
-                    'task_uid',
-                    'job_uid',
-                    'task_duration',
-                    'pred_duration',
-                    'anno_duration'
-                    'vol_file'
-                ]
-                write_res2csv(csv_path, head_row)
-            row_list = [predictor, task_uid, job_uid, task_duration, pred_duration, anno_duration, vol_file]
-            write_res2csv(csv_path, row_list)
+            try:
+                # write duration to csv file
+                csv_path = '/home/biomind/.biomind/ifs/cache/durations.csv'
+                # from datetime import datetime
+                # datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                if not os.path.exists(csv_path):
+                    head_row = [
+                        'predictor',
+                        'task_uid',
+                        'job_uid',
+                        'task_duration',
+                        'pred_duration',
+                        'anno_duration'
+                        'vol_file'
+                    ]
+                    write_res2csv(csv_path, head_row)
+                row_list = [predictor, task_uid, job_uid, task_duration, pred_duration, anno_duration, vol_file]
+                write_res2csv(csv_path, row_list)
+            except Exception as e:
+                print(f'failed to write csv file, {e}')
 
-            #TODO
-            # post callback to backend server
+           
         except Exception as e:
             print(f'Error {e}')
+            task['status'] = 30
+            task['payload']['status_code'].append('model_vessel_0009')
+            print(task)
+            update_task(update_task_url, task)
+            '''
+            "model_vessel_0009": {
+            "type": "error",
+            "en-us": "failed to do annotation",
+            "zh-cn": "后处理annotation失败"
+            }
+            '''
 
 
 while mock_mode == 'on':
-    tasks = get_tasks(get_tasks_url)
+    tasks = get_mock_tasks()
     while len(tasks) == 0:
         time.sleep(1)
-        tasks = get_tasks(get_tasks_url)
+        tasks = get_mock_tasks()
     for task in tasks:
         try:
             ts = time.time()
@@ -332,11 +402,12 @@ while mock_mode == 'on':
             vol_file = task['vol_file']
             if not os.path.exists(cache_path):
                 os.mkdir(cache_path)
-                
+            
             result, pred_duration = eval(pred_map[task_name])(vol_file, job_uid, cache_path)
             task_duration = time.time() - ts
             call_back = {
                 'jobid': job_uid,
+                'predictor': task_name,
                 'job_status': 'done',
                 'job_duration': task_duration,
                 'pred_duration': pred_duration
@@ -344,7 +415,7 @@ while mock_mode == 'on':
             print(call_back)
 
             # do annotation
-            if predictor == 'archcta' or predictor == 'headneckcta':
+            if 1: #task_name == 'archcta' or task_name == 'headneckcta':
                 input_data = {
                     "job_uid": job_uid,
                     'task_uid': vol_file,
