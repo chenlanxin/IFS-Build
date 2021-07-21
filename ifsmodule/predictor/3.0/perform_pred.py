@@ -13,16 +13,20 @@ with open('/home/biomind/.biomind/ifs/config.json') as j:
     cfg = json.load(j)
 pprint(cfg)
 
+# mock_mode = cfg['mock_mode']
 queue_hosts = cfg['queue_host']
 annotation_host = cfg['annotation_host']
 task_num = cfg['task_num']
 
+# mock_mode = 'on'
+# queue_host = "http://127.0.0.1:8000"
+
 pred_map = {
-    'braincta_predictor':    'pred_headcta',
+    'braincta_predictor': 'pred_headcta',
     'headneckcta_predictor': 'pred_hdnkcta',
     'archcta_predictor':     'pred_archcta',
     'corocta_predictor':     'pred_corocta',
-    'lungct':                'pred_lungct'
+    'lungct':      'pred_lungct'
 }
 mode = 'ifstime'
 pkg = ''
@@ -229,10 +233,7 @@ def request_annotation(input_data):
     # }
     res = requests.post(anno_url, data=input_data)
     print(res.status_code)
-    if res.status_code == 200:
-        print(f"Check {input_data['cache_path']} for result protocols.")
-    else:
-        print(f'failed to post annotation. errorcode {res.status_code}')
+    print(f"Check {input_data['cache_path']} for result protocols.")
     return res.json()
 
 def post_duration_prom(duration_name, task_name, duration):
@@ -257,7 +258,7 @@ def write_res2csv(csv_path, row_list):
 
 while 1:
     for queue_host in queue_hosts:
-        get_tasks_url = f"{queue_host}/euler/get_task/{task_num}"
+        get_tasks_url = f"{queue_host}/jobs/get_ready_tasks?top={task_num}"
         update_task_url = f"{queue_host}/euler/update_task"
         print(f'Getting tasks from {get_tasks_url}...')
         tasks = get_tasks(get_tasks_url)

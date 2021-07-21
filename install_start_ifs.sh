@@ -244,7 +244,7 @@ else
     cp -rf ./PredictorMock/* $home_dir/ifs/PredictorMock
 fi
 
-./start_ifs.sh 
+# ./start_ifs.sh 
 
 # cd $home_dir/ifs/PredictorMock
 # python3 manage.py runserver &
