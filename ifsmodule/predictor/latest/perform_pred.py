@@ -16,6 +16,8 @@ pprint(cfg)
 queue_hosts = cfg['queue_host']
 annotation_host = cfg['annotation_host']
 task_num = cfg['task_num']
+get_task_endpoint = cfg['get_task_endpoint']
+update_task_endpoint = cfg['update_task_endpoint']
 
 pred_map = {
     'braincta_predictor':    'pred_headcta',
@@ -257,8 +259,8 @@ def write_res2csv(csv_path, row_list):
 
 while 1:
     for queue_host in queue_hosts:
-        get_tasks_url = f"{queue_host}/euler/get_task/{task_num}"
-        update_task_url = f"{queue_host}/euler/update_task"
+        get_tasks_url = f"{queue_host}{get_task_endpoint}{task_num}"
+        update_task_url = f"{queue_host}{update_task_endpoint}"
         print(f'Getting tasks from {get_tasks_url}...')
         tasks = get_tasks(get_tasks_url)
         if len(tasks) == 0:
