@@ -1,0 +1,9 @@
+[submodule "deps/IFS-Angiography"]
+	path = deps/IFS-Angiography
+	url = git@github.com:WingsOfPanda/IFS-Angiography.git
+[submodule "deps/IFS-Utils"]
+	path = deps/IFS-Utils
+	url = git@github.com:WingsOfPanda/IFS-Utils.git
+[submodule "deps/IFS-Annotation"]
+	path = deps/IFS-Annotation
+	url = git@github.com:chenlanxin/IFS-Annotation.git

@@ -1,0 +1,10 @@
+[
+    {
+        "name": "triton",
+        "script": "bash",
+        "args": [
+            "-c", "./opt/tritonserver/bin/tritonserver --allow-grpc true --grpc-port 28001 --allow-http true --http-port 28000 --allow-metrics true --http-thread-count 8 --allow-gpu-metrics true --metrics-port 28002 --model-repository=/home/biomind/.biomind/ifs/models/current --pinned-memory-pool-byte-size 24576 --min-supported-compute-capability 8.6 --model-control-mode explicit --log-warning TRUE --log-info TRUE --buffer-manager-thread-count 16 --backend-directory ./opt/tritonserver/backends"
+        ],
+        "cwd": "/home/biomind/.biomind/ifs/environment/triton/current"
+    }
+]

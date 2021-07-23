@@ -1,0 +1,19 @@
+#!/bin/bash
+
+set -e
+
+MODULE_DIR=$(realpath "$(dirname $0)")
+MODULE=$(basename $MODULE_DIR)
+
+if [ ! -d $BIOM_LOG_PATH/$MODULE ]; then
+    mkdir -p $BIOM_LOG_PATH/$MODULE
+fi
+
+if [ ! -d $BIOM_VAR_PATH/$MODULE ]; then
+    mkdir -p $BIOM_VAR_PATH/$MODULE
+    cp -rf $BIOM_ENV_PATH/nginx/current/nginx-conf/* $BIOM_VAR_PATH/$MODULE
+fi
+
+if [ "$(getcap $BIOM_ENV_PATH/$MODULE/current/sbin/nginx | wc -l)" = "0" ]; then
+    sudo setcap 'cap_net_bind_service=+ep' $BIOM_ENV_PATH/$MODULE/current/sbin/nginx
+fi

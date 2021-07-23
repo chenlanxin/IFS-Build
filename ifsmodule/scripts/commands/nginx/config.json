@@ -1,0 +1,10 @@
+[
+    {
+        "name": "nginx",
+        "script": "bash",
+        "args": [
+            "-c", "./sbin/nginx -c /home/biomind/.biomind/var/nginx/nginx.conf -g \"daemon off;\""
+        ],
+        "cwd": "/home/biomind/.biomind/ifs/environment/nginx/current"
+    }
+]

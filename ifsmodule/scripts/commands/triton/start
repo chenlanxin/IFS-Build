@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+MODULE_DIR=$(realpath "$(dirname $0)")
+MODULE=$(basename $MODULE_DIR)
+
+TRITON_ENV_PATH="$IFS_ENV_PATH/triton/current"
+OPT_PATH="$TRITON_ENV_PATH/opt"
+USR_PATH="$TRITON_ENV_PATH/usr"
+
+export LD_LIBRARY_PATH=$USR_PATH/local/cuda-11.3/targets/x86_64-linux/lib:$USR_PATH/lib/x86_64-linux-gnu:$USR_PATH/local/mpi/lib:$USR_PATH/local/cuda/compat/lib:$USR_PATH/local/nvidia/lib:$USR_PATH/local/nvidia/lib64:$USR_PATH/local/lib:$USR_PATH/lib:$USR_PATH/lib64:$LD_LIBRARY_PATH 
+export PATH=$OPT_PATH/tritonserver/bin:$USR_PATH/local/mpi/bin:$USR_PATH/local/nvidia/bin:$USR_PATH/local/cuda/bin:$USR_PATH/local/ucx/bin:$PATH
+
+# nvcc -V 
+
+# export PATH=/home/biomind/lanxin/ifs-build/cuda-11.3/bin:$PATH
+# export LD_LIBRARY_PATH=/home/biomind/lanxin/ifs-build/cuda-11.3/lib64:$LD_LIBRARY_PATH
+# export C_INCLUDE_PATH=/home/biomind/lanxin/ifs-build/cuda-11.3/include:$C_INCLUDE_PATH
+# export CPLUS_INCLUDE_PATH=/home/biomind/lanxin/ifs-build/cuda-11.3/include:$CPLUS_INCLUDE_PATH
+
+# cuda and cudnn path
+echo $PATH
+echo $LD_LIBRARY_PATH
+echo $CUDA_VISIBLE_DEVICES
+
+pid=$(pm2 pid $MODULE)
+echo TritonPID$pid
+if [[ $pid = "" || $pid = "0" ]]; then
+    pm2 start $MODULE_DIR/config.json -l $IFS_LOG_PATH/pm2
+else
+    echo "$MODULE already started"
+fi
