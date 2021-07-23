@@ -10,17 +10,17 @@ export IFS_LOG_PATH=$IFS_HOME/logs
 echo ""
 echo "Setup inference server environment DEV package..."
 
-mock=on
-if [[ $mock == "on" ]]; then
+dependent=on
+if [[ $dependent == "on" ]]; then
     # Pm2
     IFS_PM2_VER=current
     export IFS_PM2_PATH="$IFS_ENV_PATH/pm2/$IFS_PM2_VER"
     export PM2_HOME=$IFS_VAR_PATH/pm2
     if [ -d "$IFS_PM2_PATH" ]; then
         PATH="$IFS_PM2_PATH:$PATH"
-        echo "Added pm2/$IFS_PM2_VER to PATH"
+        echo "Added $IFS_ENV_PATH/pm2/$IFS_PM2_VER to PATH"
     else
-        echo "Missing pm2/$IFS_PM2_VER"
+        echo "Missing $IFS_ENV_PATH/pm2/$IFS_PM2_VER"
     fi
 
     # Python
@@ -28,9 +28,9 @@ if [[ $mock == "on" ]]; then
     export IFS_PYTHON_PATH="$IFS_ENV_PATH/python/$IFS_PYTHON_VER"
     if [ -d "$IFS_PYTHON_PATH" ]; then
         PATH="$IFS_PYTHON_PATH/bin:$PATH"
-        echo "Added python/$IFS_PYTHON_VER to PATH"
+        echo "Added $IFS_ENV_PATH/python/$IFS_PYTHON_VER to PATH"
     else
-        echo "Missing python/$IFS_PYTHON_VER"
+        echo "Missing $IFS_ENV_PATH/python/$IFS_PYTHON_VER"
     fi
 fi
 

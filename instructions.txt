@@ -9,28 +9,20 @@ Step 2:install driver
 ./nvidia-driver-install-step2.sh
 
 
-Install and start Inference Server
+Install Inference Server:
 ./install_start_ifs.sh prod
-OR
-CUDA_VISIBLE_DEVICES=0 ./install_start_ifs.sh prod
 
-Start Inference Server
+Start Inference Server:
 ./start_ifs.sh
 OR
 CUDA_VISIBLE_DEVICES=0 ./start_ifs.sh
 
-Stop Inference Server
+Stop Inference Server:
 ./stop_ifs.sh 
 
-Patch Inference Server
+Patch Inference Server:
 ./patch_ifs.sh prod
 
-
-model path:
-/home/biomind/.biomind/ifs/models
-
-ifsmodule path:
-/home/biomind/.biomind/ifs/ifsmodule
 
 update ifs config:
 vim /home/biomind/.biomind/ifs/config.json
@@ -38,11 +30,15 @@ vim /home/biomind/.biomind/ifs/config.json
 start whole ifs:
 ifs-env start
 
+delete all pm2 processes:
 pm2 delete all
+
+delete single pm2 process:
+pm2 delete predictor
+pm2 delete triton
+pm2 delete annotation
+
+start single service:
 ifs-env predictor start
 ifs-env triton start
 ifs-env annotation start
-
-
-update ml codes
-/home/biomind/.biomind/ifs/ifsmodule/mlmodule/1.1

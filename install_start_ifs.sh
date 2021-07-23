@@ -7,6 +7,7 @@ set -e
 # start triton
 # start predictor
 
+
 home_dir=/home/biomind/.biomind
 mkdir -p $home_dir
 mode=$1

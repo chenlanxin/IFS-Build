@@ -9,7 +9,8 @@ home_dir=/home/biomind/.biomind
 if [[ $mode == "prod" ]]; then
     if [ -f "./environment.tgz" ]; then
         echo "### Updating environment environment..."
-        tar -xzvf ./cuda.tgz -C $home_dir/ifs > /dev/null
+        rm -rf $home_dir/ifs/environment
+        tar -xzvf ./environment.tgz -C $home_dir/ifs > /dev/null
         echo ""
     else
         echo "No new environment to update."

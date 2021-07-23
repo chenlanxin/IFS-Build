@@ -1,18 +1,18 @@
 cur_dir=/home/biomind/ifs-release
-build_dir=/home/biomind/ifs-build-0719
+build_dir=/home/biomind/euler-0.0.0
 mkdir -p $build_dir
 
-# # copy nvidia-driver
-cp -r ./nvidia-driver-installation $build_dir/
+# # # copy nvidia-driver
+# cp -r ./nvidia-driver-installation $build_dir/
 
-# # build environment
-tar -czvf $build_dir/environment.tgz ./environment
+# # # build environment
+# tar -czvf $build_dir/environment.tgz ./environment
 
-# # build models
-tar -czvf $build_dir/models.tgz ./models
+# # # build models
+# tar -czvf $build_dir/models.tgz ./models
 
-# build PredictorMock
-tar -czvf $build_dir/PredictorMock.tgz ./PredictorMock
+# # build PredictorMock
+# tar -czvf $build_dir/PredictorMock.tgz ./PredictorMock
 
 
 # cp scripts and instructions

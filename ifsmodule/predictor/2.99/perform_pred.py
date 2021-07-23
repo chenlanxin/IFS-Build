@@ -229,7 +229,7 @@ def request_annotation(input_data):
     # }
     res = requests.post(anno_url, data=input_data)
     print(res.status_code)
-    if res.status_code == 200:
+    if res.status_code == 201:
         print(f"Check {input_data['cache_path']} for result protocols.")
     else:
         print(f'failed to post annotation. errorcode {res.status_code}')
@@ -263,11 +263,12 @@ while 1:
         tasks = get_tasks(get_tasks_url)
         if len(tasks) == 0:
             print('No task found.')
-            time.sleep(5)
+            time.sleep(1)
             # tasks = get_tasks(get_tasks_url)
             continue
         for task in tasks:
             try:
+                predictor = task['predictor']
                 # get if is mock mode
                 mock_flg = 0
                 if isinstance(task, dict):
@@ -283,7 +284,7 @@ while 1:
                 # ['auto', 'config', 'status', 'job_uid', 'task_uid', 'predictor', 'study_uid', 'cache_path', 'status_code', 'classifier_series']
                 payload = task['payload']
                 ts = time.time()
-                predictor = task['predictor']
+                
                 job_uid = payload['job_uid']
                 task_uid = payload['task_uid']
                 cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}' #payload['cache_path']
@@ -300,12 +301,40 @@ while 1:
 
                 tmp_file = download_inputdata(vol_file, task_uid, predictor)
                 print(tmp_file)
-                result, pred_duration = eval(pred_map[predictor])(tmp_file, task_uid, cache_path)
-                print(result)
+                if not os.path.exists(tmp_file):
+                    task['status'] = 30
+                    error_dict = {
+                        "code": "model_vessel_0010",
+                        "info": "failed to get nii file",
+                        "module": predictor
+                    }
+                    task['payload']['status_code'].append(error_dict)
+                    print(task)
+                    update_task(update_task_url, task)
+                    continue
+                try:
+                    result, pred_duration = eval(pred_map[predictor])(tmp_file, task_uid, cache_path)
+                    print(result)
+                except:
+                    task['status'] = 30
+                    error_dict = {
+                        "code": "model_vessel_0011",
+                        "info": "failed to predict",
+                        "module": predictor
+                    }
+                    task['payload']['status_code'].append(error_dict)
+                    print(task)
+                    update_task(update_task_url, task)
+                    continue
                 if result is not None:
                     # update task: error
                     task['status'] = 30
-                    task['payload']['status_code'].append(result)
+                    error_dict = {
+                        "code": result,
+                        "info": "error during prediction",
+                        "module": predictor
+                    }
+                    task['payload']['status_code'].append(error_dict)
                     print(task)
                     update_task(update_task_url, task)
                     continue
@@ -389,7 +418,12 @@ while 1:
             except Exception as e:
                 print(f'Error {e}')
                 task['status'] = 30
-                task['payload']['status_code'].append('model_vessel_0009')
+                error_dict = {
+                    "code": "model_vessel_0009",
+                    "info": "error occurs before prediction, or in annotation",
+                    "module": predictor
+                }
+                task['payload']['status_code'].append(error_dict)
                 print(task)
                 update_task(update_task_url, task)
                 '''
