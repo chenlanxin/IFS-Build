@@ -1,4 +1,5 @@
-cur_dir=/home/biomind/ifs-release
+mode=dev
+cur_dir=/home/biomind/Developer/IFS-Build
 build_dir=/home/biomind/euler-0.0.0
 mkdir -p $build_dir
 

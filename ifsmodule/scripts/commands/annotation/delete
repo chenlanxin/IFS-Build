@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+MODULE_DIR=$(realpath "$(dirname $0)")
+MODULE=$(basename $MODULE_DIR)
+
+pid=$(pm2 pid $MODULE)
+if [[ $pid != "" ]]; then
+    pm2 delete $MODULE_DIR/config.json
+else
+    echo "$MODULE doest not exists"
+fi

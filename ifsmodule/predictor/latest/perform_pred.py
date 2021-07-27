@@ -176,7 +176,7 @@ def get_tasks(get_tasks_url):
             tasks = res['data']
             return tasks
         else:
-            print(f"failed to GET {get_tasks_url}: {resp.status_code}")
+            #print(f"failed to GET {get_tasks_url}: {resp.status_code}")
             return []
     except Exception as e:
         print(f"failed to GET {get_tasks_url}: {e}")
@@ -198,12 +198,14 @@ def get_tasks(get_tasks_url):
 
 def download_inputdata(url, task_uid, predictor):
     if url.startswith("http"):
+        ts = time.time()
         tmp_dir = f'/home/biomind/.biomind/ifs/cache/nii/{predictor}'
         if not os.path.exists(tmp_dir):
-            os.mkdir(tmp_dir)
+            os.makedirs(tmp_dir)
         tmp_file = os.path.join(tmp_dir, f'{task_uid}.nii.gz')
-        cmd = f'curl {url} -o {tmp_file} -k'
+        cmd = f"curl '{url}' -o {tmp_file} -k"
         os.system(cmd)
+        print(f"Downloading data takes {time.time() - ts} seconds.")
         return tmp_file
     else:
         return url
@@ -264,11 +266,12 @@ while 1:
         print(f'Getting tasks from {get_tasks_url}...')
         tasks = get_tasks(get_tasks_url)
         if len(tasks) == 0:
-            print('No task found.')
+            #print('No task found.')
             time.sleep(1)
             # tasks = get_tasks(get_tasks_url)
             continue
         for task in tasks:
+            print('Processing tasks')
             try:
                 predictor = task['predictor']
                 # get if is mock mode
@@ -280,7 +283,7 @@ while 1:
 
                 # update task status
                 task['status'] = 10
-                print(task)
+                #print(task)
                 update_task(update_task_url, task)
 
                 # ['auto', 'config', 'status', 'job_uid', 'task_uid', 'predictor', 'study_uid', 'cache_path', 'status_code', 'classifier_series']
@@ -325,7 +328,7 @@ while 1:
                         "module": predictor
                     }
                     task['payload']['status_code'].append(error_dict)
-                    print(task)
+                    print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
                 if result is not None:
@@ -337,7 +340,7 @@ while 1:
                         "module": predictor
                     }
                     task['payload']['status_code'].append(error_dict)
-                    print(task)
+                    print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
 
@@ -426,7 +429,7 @@ while 1:
                     "module": predictor
                 }
                 task['payload']['status_code'].append(error_dict)
-                print(task)
+                print(task['payload']['status_code'])
                 update_task(update_task_url, task)
                 '''
                 "model_vessel_0009": {
