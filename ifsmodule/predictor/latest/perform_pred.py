@@ -16,13 +16,16 @@ pprint(cfg)
 queue_hosts = cfg['queue_host']
 annotation_host = cfg['annotation_host']
 task_num = cfg['task_num']
+get_task_endpoint = cfg['get_task_endpoint']
+update_task_endpoint = cfg['update_task_endpoint']
+
 
 pred_map = {
     'braincta_predictor':    'pred_headcta',
     'headneckcta_predictor': 'pred_hdnkcta',
     'archcta_predictor':     'pred_archcta',
     'corocta_predictor':     'pred_corocta',
-    'lungct':                'pred_lungct'
+    'lungct_predictor':      'pred_lungct'
 }
 mode = 'ifstime'
 pkg = ''
@@ -156,7 +159,7 @@ def pred_lungct(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        lung_results = main_api.ifsr(sitk_, img_arr, "")
+        lung_results = main_api.ifsr(cache_path, sitk_, img_arr, "")
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -196,12 +199,14 @@ def get_tasks(get_tasks_url):
 
 def download_inputdata(url, task_uid, predictor):
     if url.startswith("http"):
+        ts = time.time()
         tmp_dir = f'/home/biomind/.biomind/ifs/cache/nii/{predictor}'
         if not os.path.exists(tmp_dir):
-            os.mkdir(tmp_dir)
+            os.makedirs(tmp_dir)
         tmp_file = os.path.join(tmp_dir, f'{task_uid}.nii.gz')
-        cmd = f'curl {url} -o {tmp_file} -k'
+        cmd = f"curl '{url}' -o {tmp_file} -k"
         os.system(cmd)
+        print(f"Downloading data takes {time.time() - ts} seconds.")
         return tmp_file
     else:
         return url
@@ -257,16 +262,17 @@ def write_res2csv(csv_path, row_list):
 
 while 1:
     for queue_host in queue_hosts:
-        get_tasks_url = f"{queue_host}/euler/get_task/{task_num}"
-        update_task_url = f"{queue_host}/euler/update_task"
+        get_tasks_url = f"{queue_host}{get_task_endpoint}{task_num}"
+        update_task_url = f"{queue_host}{update_task_endpoint}"
         print(f'Getting tasks from {get_tasks_url}...')
         tasks = get_tasks(get_tasks_url)
         if len(tasks) == 0:
-            print('No task found.')
+            #print('No task found.')
             time.sleep(1)
             # tasks = get_tasks(get_tasks_url)
             continue
         for task in tasks:
+            print('Processing tasks')
             try:
                 predictor = task['predictor']
                 # get if is mock mode
@@ -278,7 +284,7 @@ while 1:
 
                 # update task status
                 task['status'] = 10
-                print(task)
+                #print(task)
                 update_task(update_task_url, task)
 
                 # ['auto', 'config', 'status', 'job_uid', 'task_uid', 'predictor', 'study_uid', 'cache_path', 'status_code', 'classifier_series']
@@ -323,7 +329,7 @@ while 1:
                         "module": predictor
                     }
                     task['payload']['status_code'].append(error_dict)
-                    print(task)
+                    print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
                 if result is not None:
@@ -335,7 +341,7 @@ while 1:
                         "module": predictor
                     }
                     task['payload']['status_code'].append(error_dict)
-                    print(task)
+                    print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
 
@@ -351,7 +357,7 @@ while 1:
                 print(call_back)
                 
                 # do annotation
-                if 1: # predictor == 'archcta' or predictor == 'headneckcta':
+                if "cta_predictor" in predictor: # predictor == 'archcta' or predictor == 'headneckcta':
                     input_data = {
                         "job_uid": job_uid,
                         'task_uid': task_uid,
@@ -424,7 +430,7 @@ while 1:
                     "module": predictor
                 }
                 task['payload']['status_code'].append(error_dict)
-                print(task)
+                print(task['payload']['status_code'])
                 update_task(update_task_url, task)
                 '''
                 "model_vessel_0009": {

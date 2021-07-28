@@ -1,0 +1,3 @@
+ifs-env predictor stop
+ifs-env triton stop
+ifs-env annotation stop

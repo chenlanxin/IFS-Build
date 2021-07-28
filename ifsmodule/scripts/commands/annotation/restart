@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+MODULE_DIR=$(realpath "$(dirname $0)")
+MODULE=$(basename $MODULE_DIR)
+
+pid=$(pm2 pid $MODULE)
+if [[ $pid != "" && $pid != "0" ]]; then
+    pm2 stop $MODULE_DIR/config.json
+    pm2 start $MODULE_DIR/config.json -l $IFS_LOG_PATH/pm2
+else
+    echo "$MODULE not started"
+fi
