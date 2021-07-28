@@ -24,7 +24,7 @@ pred_map = {
     'headneckcta_predictor': 'pred_hdnkcta',
     'archcta_predictor':     'pred_archcta',
     'corocta_predictor':     'pred_corocta',
-    'lungct':                'pred_lungct'
+    'lungct_predictor':      'pred_lungct'
 }
 mode = 'ifstime'
 pkg = ''
@@ -158,7 +158,7 @@ def pred_lungct(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        lung_results = main_api.ifsr(sitk_, img_arr, "")
+        lung_results = main_api.ifsr(cache_path, sitk_, img_arr, "")
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -176,7 +176,7 @@ def get_tasks(get_tasks_url):
             tasks = res['data']
             return tasks
         else:
-            #print(f"failed to GET {get_tasks_url}: {resp.status_code}")
+            print(f"failed to GET {get_tasks_url}: {resp.status_code}")
             return []
     except Exception as e:
         print(f"failed to GET {get_tasks_url}: {e}")
@@ -356,7 +356,7 @@ while 1:
                 print(call_back)
                 
                 # do annotation
-                if 1: # predictor == 'archcta' or predictor == 'headneckcta':
+                if "cta_predictor" in predictor: # predictor == 'archcta' or predictor == 'headneckcta':
                     input_data = {
                         "job_uid": job_uid,
                         'task_uid': task_uid,
