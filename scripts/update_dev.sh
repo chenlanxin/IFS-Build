@@ -32,7 +32,16 @@ ifsutils=(
     [branch]="main"   
 )  
 
-new_annotation=false
+new_ifschest=false
+declare -A ifschest
+ifschest=(
+    [repo_name]="IFS-Chest-CT" 
+    [repo_url]="git@github.com:WingsOfPanda/IFS-Chest-CT.git"
+    [remote_name]="origin" 
+    [branch]="main"   
+)  
+
+new_annotation=true
 declare -A annotation
 annotation=(
     [repo_name]="IFS-Annotation"
@@ -76,6 +85,20 @@ if [[ $new_ifsag == "true" ]]; then
     echo "--------------------------------"
 fi
 
+if [[ $new_ifschest == "true" ]]; then
+    echo "Updating IFS-Chest-CT."
+    cd $deps_dir/${ifschest[repo_name]}
+    git remote add ${ifschest[remote_name]} ${ifschest[repo_url]}
+    git fetch --all --prune
+    git checkout -b ${ifschest[branch]}
+    git checkout ${ifschest[branch]}
+    git reset --hard ${ifschest[remote_name]}/${ifschest[branch]}
+    git pull ${ifschest[remote_name]} ${ifschest[branch]}
+    rm -rf $mlmodule_home/*cc
+    cp -rf *cc $mlmodule_home/
+    echo "--------------------------------"
+fi
+
 if [[ $new_ifsutils == "true" ]]; then
     echo "Updating IFS-Utils."
     cd $deps_dir/${ifsutils[repo_name]}
@@ -93,12 +116,12 @@ fi
 if [[ $new_annotation == "true" ]]; then
     echo "Updating IFS-Annotation."
     cd $deps_dir/${annotation[repo_name]}
-    git remote add ${annotation[remote_name]} ${annotation[repo_url]}
-    git fetch --all --prune
-    git checkout -b ${annotation[branch]}
-    git checkout ${annotation[branch]}
-    git reset --hard ${annotation[remote_name]}/${annotation[branch]}
-    git pull ${annotation[remote_name]} ${annotation[branch]}
+    # git remote add ${annotation[remote_name]} ${annotation[repo_url]}
+    # git fetch --all --prune
+    # git checkout -b ${annotation[branch]}
+    # git checkout ${annotation[branch]}
+    # git reset --hard ${annotation[remote_name]}/${annotation[branch]}
+    # git pull ${annotation[remote_name]} ${annotation[branch]}
     rm -rf $annotation_home/*
     cp -rf * $annotation_home/
     echo "--------------------------------"

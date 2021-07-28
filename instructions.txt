@@ -10,35 +10,49 @@ Step 2:install driver
 
 
 Install Inference Server:
-./install_start_ifs.sh prod
+./install_ifs.sh prod
 
 Start Inference Server:
 ./start_ifs.sh
 OR
 CUDA_VISIBLE_DEVICES=0 ./start_ifs.sh
+ifs-env start
 
 Stop Inference Server:
-./stop_ifs.sh 
+ifs-env stop
 
 Patch Inference Server:
 ./patch_ifs.sh prod
 
 
-update ifs config:
-vim /home/biomind/.biomind/ifs/config.json
-
-start whole ifs:
-ifs-env start
-
-delete all pm2 processes:
-pm2 delete all
-
-delete single pm2 process:
-pm2 delete predictor
-pm2 delete triton
-pm2 delete annotation
 
 start single service:
 ifs-env predictor start
 ifs-env triton start
 ifs-env annotation start
+
+stop single service:
+ifs-env predictor stop
+ifs-env triton stop
+ifs-env annotation stop
+
+restart single service:
+ifs-env predictor restart
+ifs-env triton restart
+ifs-env annotation restart
+
+delete single service:
+ifs-env predictor delete
+ifs-env triton delete
+ifs-env annotation delete
+
+
+update ifs config:
+vim /home/biomind/.biomind/ifs/config.json
+
+#修改biomindserver服务的ip地址
+vim /home/biomind/.biomind/ifs/config.json
+修改queue_host: ["http://10.0.103.59"]
+
+#重启predictor
+ifs-env predictor restart

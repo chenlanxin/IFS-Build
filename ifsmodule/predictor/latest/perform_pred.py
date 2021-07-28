@@ -24,7 +24,7 @@ pred_map = {
     'headneckcta_predictor': 'pred_hdnkcta',
     'archcta_predictor':     'pred_archcta',
     'corocta_predictor':     'pred_corocta',
-    'lungct_predictor':      'pred_lungct'
+    'lungct_v2_predictor':      'pred_lungct'
 }
 mode = 'ifstime'
 pkg = ''
@@ -60,24 +60,11 @@ def pred_hdnkcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(cache_path, sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
         print('-' * 100)
-    
-    # ts = time.time()
-    # res_json = {
-    #     'mask1': npy2str(cta_results[0]),
-    #     'mask2': npy2str(cta_results[1])
-    # }
-    # if not os.path.exists(cache_path):
-    #     os.mkdir(cache_path)
-    # res_json_path = os.path.join(cache_path, 'protocol.json')
-    # with open(res_json_path, 'w') as f:
-    #         json.dump(res_json, f)
-    # save_duration = time.time() - ts
-    # print(f'save results in {save_duration}s')
 
     return cta_results, pred_duration
 
@@ -94,7 +81,7 @@ def pred_corocta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(cache_path, sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -115,7 +102,7 @@ def pred_headcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(cache_path, sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -136,7 +123,7 @@ def pred_archcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(cache_path, sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -158,7 +145,7 @@ def pred_lungct(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        lung_results = main_api.ifsr(cache_path, sitk_, img_arr, "")
+        lung_results = main_api.ifsr(sitk_, img_arr, cache_path, "")
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -182,27 +169,13 @@ def get_tasks(get_tasks_url):
         print(f"failed to GET {get_tasks_url}: {e}")
         return []
 
-# def get_mock_tasks(queue_host):
-    try:
-        get_tasks_url = f"{queue_host}/tasks/get?num={task_num}"
-        resp = requests.get(get_tasks_url)
-        if resp.status_code == 200:
-            res = resp.json()
-            return res
-        else:
-            print(f"failed to GET {get_tasks_url}: {resp.status_code}")
-            return []
-    except Exception as e:
-        print(f"failed to GET {get_tasks_url}: {e}")
-        return []
 
-def download_inputdata(url, task_uid, predictor):
+def download_inputdata(url, task_uid, cache_path):
     if url.startswith("http"):
         ts = time.time()
-        tmp_dir = f'/home/biomind/.biomind/ifs/cache/nii/{predictor}'
-        if not os.path.exists(tmp_dir):
-            os.makedirs(tmp_dir)
-        tmp_file = os.path.join(tmp_dir, f'{task_uid}.nii.gz')
+        if not os.path.exists(cache_path):
+            os.makedirs(cache_path)
+        tmp_file = os.path.join(cache_path, f'{task_uid}.nii.gz')
         cmd = f"curl '{url}' -o {tmp_file} -k"
         os.system(cmd)
         print(f"Downloading data takes {time.time() - ts} seconds.")
@@ -283,7 +256,7 @@ while 1:
 
                 # update task status
                 task['status'] = 10
-                #print(task)
+                print(task)
                 update_task(update_task_url, task)
 
                 # ['auto', 'config', 'status', 'job_uid', 'task_uid', 'predictor', 'study_uid', 'cache_path', 'status_code', 'classifier_series']
@@ -292,19 +265,22 @@ while 1:
                 
                 job_uid = payload['job_uid']
                 task_uid = payload['task_uid']
-                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}' #payload['cache_path']
                 classifier_series = payload['classifier_series']
-                vol_files = []
                 for k, v in classifier_series.items():
                     if v['type'] == "CTA":
                         vol_id = k
                         vol_file = v['vol_url']
                         break
+                    elif v['type'] == "CT_Lung":
+                        vol_id = k
+                        vol_file = v['vol_url']
+                        break
+                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{vol_id}' #payload['cache_path']
                 if not os.path.exists(cache_path):
                     os.makedirs(cache_path)
                 print(f'Predicting {predictor}...')
 
-                tmp_file = download_inputdata(vol_file, task_uid, predictor)
+                tmp_file = download_inputdata(vol_file, task_uid, cache_path)
                 print(tmp_file)
                 if not os.path.exists(tmp_file):
                     task['status'] = 30
@@ -319,7 +295,6 @@ while 1:
                     continue
                 try:
                     result, pred_duration = eval(pred_map[predictor])(tmp_file, task_uid, cache_path)
-                    print(result)
                 except:
                     task['status'] = 30
                     error_dict = {
@@ -331,7 +306,7 @@ while 1:
                     print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
-                if result is not None:
+                if isinstance(result, str):
                     # update task: error
                     task['status'] = 30
                     error_dict = {
@@ -356,19 +331,19 @@ while 1:
                 print(call_back)
                 
                 # do annotation
-                if "cta_predictor" in predictor: # predictor == 'archcta' or predictor == 'headneckcta':
-                    input_data = {
-                        "job_uid": job_uid,
-                        'task_uid': task_uid,
-                        'vol_id': vol_id,
-                        'predictor': predictor,
-                        "cache_path": cache_path,
-                    }
-                    ts = time.time()
-                    anno_res = request_annotation(input_data)
-                    anno_duration = time.time() - ts
-                else:
-                    anno_duration = 0
+                anno_duration = 0
+                input_data = {
+                    "job_uid": job_uid,
+                    'task_uid': task_uid,
+                    'vol_id': vol_id,
+                    'predictor': predictor,
+                    "cache_path": cache_path,
+                    "payload": result
+                }
+                ts = time.time()
+                anno_res = request_annotation(input_data)
+                anno_duration = time.time() - ts
+               
 
                 # update task: finished
                 task['status'] = 20
@@ -439,74 +414,3 @@ while 1:
                 }
                 '''
 
-
-        # if mock_mode == 'on':
-        #     tasks = get_mock_tasks('http://127.0.0.1:8000')
-        #     while len(tasks) == 0:
-        #         time.sleep(1)
-        #         tasks = get_mock_tasks()
-        #     for task in tasks:
-        #         try:
-        #             ts = time.time()
-        #             task_name = task['task_name']
-        #             job_uid = task['job_id']
-        #             cache_path = task['cache_path']
-        #             vol_file = task['vol_file']
-        #             if not os.path.exists(cache_path):
-        #                 os.mkdir(cache_path)
-                    
-        #             result, pred_duration = eval(pred_map[task_name])(vol_file, job_uid, cache_path)
-        #             task_duration = time.time() - ts
-        #             call_back = {
-        #                 'jobid': job_uid,
-        #                 'predictor': task_name,
-        #                 'job_status': 'done',
-        #                 'job_duration': task_duration,
-        #                 'pred_duration': pred_duration
-        #             }
-        #             print(call_back)
-
-        #             # do annotation
-        #             if 1: #task_name == 'archcta' or task_name == 'headneckcta':
-        #                 input_data = {
-        #                     "job_uid": job_uid,
-        #                     'task_uid': vol_file,
-        #                     'vol_id': '1',
-        #                     'predictor': task_name,
-        #                     "cache_path": cache_path,
-        #                 }
-        #                 ts = time.time()
-        #                 request_annotation(input_data)
-        #                 anno_duration = time.time() - ts
-        #             else:
-        #                 anno_duration = 0
-
-        #             # post duration to dashboard
-        #             try:
-        #                 post_duration_prom('duration_job', task_name, task_duration)
-        #                 post_duration_prom('duration_pred', task_name, pred_duration)
-        #                 post_duration_prom('duration_anno', task_name, anno_duration)
-        #             except:
-        #                 print('No prometheus service found.')
-                    
-        #             # write duration to csv file
-        #             csv_path = '/home/biomind/.biomind/ifs/cache/durations_mock.csv'
-        #             # from datetime import datetime
-        #             # datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        #             if not os.path.exists(csv_path):
-        #                 head_row = [
-        #                     'predictor',
-        #                     'vol_file',
-        #                     'job_uid',
-        #                     'task_duration',
-        #                     'pred_duration',
-        #                     'anno_duration'
-        #                     'vol_file'
-        #                 ]
-        #                 write_res2csv(csv_path, head_row)
-        #             row_list = [task_name, vol_file, job_uid, task_duration, pred_duration, anno_duration, vol_file]
-        #             write_res2csv(csv_path, row_list)
-        #             #TODO
-        #             # post callback to backend server
-        #         except Exception as e:
-        #             print(f'Error {e}')

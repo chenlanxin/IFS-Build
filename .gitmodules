@@ -7,3 +7,6 @@
 [submodule "deps/IFS-Annotation"]
 	path = deps/IFS-Annotation
 	url = git@github.com:chenlanxin/IFS-Annotation.git
+[submodule "deps/IFS-Chest-CT"]
+	path = deps/IFS-Chest-CT
+	url = git@github.com:WingsOfPanda/IFS-Chest-CT.git

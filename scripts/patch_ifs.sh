@@ -69,8 +69,8 @@ echo ""
 
 mkdir -p $home_dir/ifs/cache
 chmod a+w -R $home_dir/ifs/cache
-mkdir -p $home_dir/ifs/cache/nii
-chmod a+w -R $home_dir/ifs/cache/nii
+# mkdir -p $home_dir/ifs/cache/nii
+# chmod a+w -R $home_dir/ifs/cache/nii
 
 # source $home_dir/.profile
 
