@@ -19,6 +19,7 @@ task_num = cfg['task_num']
 get_task_endpoint = cfg['get_task_endpoint']
 update_task_endpoint = cfg['update_task_endpoint']
 
+
 pred_map = {
     'braincta_predictor':    'pred_headcta',
     'headneckcta_predictor': 'pred_hdnkcta',
