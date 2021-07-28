@@ -197,13 +197,12 @@ def get_tasks(get_tasks_url):
         print(f"failed to GET {get_tasks_url}: {e}")
         return []
 
-def download_inputdata(url, task_uid, predictor):
+def download_inputdata(url, task_uid, cache_path):
     if url.startswith("http"):
         ts = time.time()
-        tmp_dir = f'/home/biomind/.biomind/ifs/cache/nii/{predictor}'
-        if not os.path.exists(tmp_dir):
-            os.makedirs(tmp_dir)
-        tmp_file = os.path.join(tmp_dir, f'{task_uid}.nii.gz')
+        if not os.path.exists(cache_path):
+            os.makedirs(cache_path)
+        tmp_file = os.path.join(cache_path, f'{task_uid}.nii.gz')
         cmd = f"curl '{url}' -o {tmp_file} -k"
         os.system(cmd)
         print(f"Downloading data takes {time.time() - ts} seconds.")
@@ -293,7 +292,6 @@ while 1:
                 
                 job_uid = payload['job_uid']
                 task_uid = payload['task_uid']
-                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}' #payload['cache_path']
                 classifier_series = payload['classifier_series']
                 vol_files = []
                 for k, v in classifier_series.items():
@@ -304,8 +302,8 @@ while 1:
                 if not os.path.exists(cache_path):
                     os.makedirs(cache_path)
                 print(f'Predicting {predictor}...')
-
-                tmp_file = download_inputdata(vol_file, task_uid, predictor)
+                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{vol_id}' #payload['cache_path']
+                tmp_file = download_inputdata(vol_file, task_uid, cache_path)
                 print(tmp_file)
                 if not os.path.exists(tmp_file):
                     task['status'] = 30
