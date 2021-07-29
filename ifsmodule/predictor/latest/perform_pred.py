@@ -183,20 +183,6 @@ def get_tasks(get_tasks_url):
         print(f"failed to GET {get_tasks_url}: {e}")
         return []
 
-# def get_mock_tasks(queue_host):
-    try:
-        get_tasks_url = f"{queue_host}/tasks/get?num={task_num}"
-        resp = requests.get(get_tasks_url)
-        if resp.status_code == 200:
-            res = resp.json()
-            return res
-        else:
-            print(f"failed to GET {get_tasks_url}: {resp.status_code}")
-            return []
-    except Exception as e:
-        print(f"failed to GET {get_tasks_url}: {e}")
-        return []
-
 def download_inputdata(url, task_uid, cache_path):
     if url.startswith("http"):
         ts = time.time()
@@ -299,10 +285,12 @@ while 1:
                         vol_id = k
                         vol_file = v['vol_url']
                         break
+                new_vol_id = vol_id.split('.vol')[0]
+                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{new_vol_id}' #payload['cache_path']
                 if not os.path.exists(cache_path):
                     os.makedirs(cache_path)
                 print(f'Predicting {predictor}...')
-                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{vol_id}' #payload['cache_path']
+                
                 tmp_file = download_inputdata(vol_file, task_uid, cache_path)
                 print(tmp_file)
                 if not os.path.exists(tmp_file):
