@@ -18,7 +18,7 @@ new_scripts=true
 new_model=false
 new_model_path=.
 
-new_ifsag=false
+new_ifsag=true
 declare -A ifsag
 ifsag=(
     [repo_name]="IFS-Angiography" 
@@ -27,7 +27,7 @@ ifsag=(
     [branch]="main"   
 )  
 
-new_ifsutils=false
+new_ifsutils=ture
 declare -A ifsutils
 ifsutils=(
     [repo_name]="IFS-Utils" 
@@ -45,7 +45,7 @@ ifschest=(
     [branch]="main"   
 )  
 
-new_annotation=true
+new_annotation=false
 declare -A annotation
 annotation=(
     [repo_name]="IFS-Annotation"

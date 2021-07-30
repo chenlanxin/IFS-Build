@@ -7,7 +7,7 @@ set -e
 # start triton
 # start predictor
 
-
+cwd="$( cd "$( dirname "$0" )" && pwd )"
 home_dir=/home/ifsr
 ifsr_home=$home_dir/.ifsr
 mkdir -p $ifsr_home
@@ -74,7 +74,7 @@ fi
 
 ######################################################################################
 # copy config.json, create cache path
-cp -f ./config.json $ifsr_home/ > /dev/null
+cp -f $cwd/config.json $ifsr_home/ > /dev/null
 mkdir -p $ifsr_home/cache
 chmod a+w -R $ifsr_home/cache
 ######################################################################################
@@ -89,42 +89,42 @@ if [ -d $env_home ]; then
 fi
 mkdir -p $env_home
 
-tar -xzvf ./environment/cuda.tgz -C $env_home > /dev/null
+tar -xzvf $cwd/environment/cuda.tgz -C $env_home > /dev/null
 #create symlink
 rm -f $env_home/cuda/current
 cd $env_home/cuda
 ln -s $env_home/cuda/cuda-11.3 current
 
-tar -xzvf ./environment/triton.tgz -C $env_home > /dev/null
+tar -xzvf $cwd/environment/triton.tgz -C $env_home > /dev/null
 #create symlink
 rm -f $env_home/triton/current
 cd $env_home/triton
 ln -s $env_home/triton/1.0 current
 
-if [ -f "./environment/pip.tgz" ]; then
-    tar -xzvf ./environment/pip.tgz -C $env_home > /dev/null
+if [ -f "$cwd/environment/pip.tgz" ]; then
+    tar -xzvf $cwd/environment/pip.tgz -C $env_home > /dev/null
 else
-    cp -rf ./environment/pip $env_home
+    cp -rf $cwd/environment/pip $env_home
 fi
 #create symlink
 rm -f $env_home/pip/current
 cd $env_home/pip
 ln -s $env_home/pip/1.0 current
 
-if [ -f "./environment/pm2.tgz" ]; then
-    tar -xzvf ./environment/pm2.tgz -C $env_home > /dev/null
+if [ -f "$cwd/environment/pm2.tgz" ]; then
+    tar -xzvf $cwd/environment/pm2.tgz -C $env_home > /dev/null
 else
-    cp -rf ./environment/pm2 $env_home
+    cp -rf $cwd/environment/pm2 $env_home
 fi
 #create symlink
 rm -f $env_home/pm2/current
 cd $env_home/pm2
 ln -s $env_home/pm2/4.5.0 current
 
-if [ -f "./environment/python.tgz" ]; then
-    tar -xzvf ./environment/python.tgz -C $env_home > /dev/null
+if [ -f "$cwd/environment/python.tgz" ]; then
+    tar -xzvf $cwd/environment/python.tgz -C $env_home > /dev/null
 else
-    cp -rf ./environment/python $env_home
+    cp -rf $cwd/environment/python $env_home
 fi
 #create symlink
 rm -f $env_home/python/current
@@ -141,7 +141,7 @@ if [ -d $model_home ]; then
     sudo rm -rf $model_home
 fi
 mkdir -p $model_home
-tar -xzvf ./models.tgz -C $ifsr_home > /dev/null
+tar -xzvf $cwd/models.tgz -C $ifsr_home > /dev/null
 #create symlink
 rm -f $model_home/current
 cd $model_home
@@ -156,18 +156,18 @@ if [ -d $ifsmodule_home ]; then
 fi
 # mkdir -p $ifsmodule_home
 if [[ $mode == "prod" ]]; then
-    if [ -f "./ifsmodule.tgz" ]; then
+    if [ -f "$cwd/ifsmodule.tgz" ]; then
         echo "### Installing ifs ifsmodule..."
-        tar -xzvf ./ifsmodule.tgz -C $ifsr_home > /dev/null
+        tar -xzvf $cwd/ifsmodule.tgz -C $ifsr_home > /dev/null
         echo ""
     else
         echo "No ifsmodule to update."
     fi
 
 else
-    if [ -d "./ifsmodule" ]; then
+    if [ -d "$cwd/ifsmodule" ]; then
         echo "### Installing ifs ifsmodule in dev mode..."
-        cp -rf ./ifsmodule $ifsr_home
+        cp -rf $cwd/ifsmodule $ifsr_home
         echo ""
     else
         echo "No ifsmodule to update."
