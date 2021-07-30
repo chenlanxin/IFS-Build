@@ -8,7 +8,7 @@ set -e
 # start predictor
 
 
-home_dir=/home/biomind/.biomind
+home_dir=/home/ifsr/.ifsr
 mkdir -p $home_dir
 mode=$1
 
@@ -23,6 +23,7 @@ mode=$1
 
 # TEMP_DIR=$(mktemp -d)
 
+######################################################################################
 echo "### Checking OS..."
 if [[ $(lsb_release -i | grep -o "Ubuntu") != "Ubuntu" ]]; then
     echo "This script is for Ubuntu os."
@@ -33,6 +34,8 @@ if [[ $(lsb_release -d | grep -Eo "Ubuntu.+" | awk '{print $2}') != "20.04.2" ]]
     echo "Only support Ubuntu 20.04.2 LTS"
     exit 1
 fi
+######################################################################################
+
 
 # echo "Using temp $TEMP_DIR"
 # echo ""
@@ -68,128 +71,77 @@ fi
 # sudo apt install -y -o dir::cache=./apt/dev -o dir::state::lists=./apt/lists -o dir::etc::sourcelist=./apt/sources.list $dev_pkgs
 
 
-mkdir -p $home_dir/ifs
+# mkdir -p $home_dir/ifs
 
+
+######################################################################################
+# copy config.json
+cp -f ./config.json $home_dir/ > /dev/null
+######################################################################################
+
+
+######################################################################################
+# install the environment
+echo "### Installing ifs environment..."
+env_home=$home_dir/environment
+if [ -d $env_home ]; then
+    sudo rm -rf $env_home
+fi
+mkdir -p $env_home
+tar -xzvf ./environment/cuda.tgz -C $env_home > /dev/null
+tar -xzvf ./environment/pip.tgz -C $env_home > /dev/null
+tar -xzvf ./environment/pm2.tgz -C $env_home > /dev/null
+tar -xzvf ./environment/python.tgz -C $env_home > /dev/null
+tar -xzvf ./environment/triton.tgz -C $env_home > /dev/null
+######################################################################################
+
+
+######################################################################################
+# install the models
+echo "### Installing ifs models..."
+model_home=$home_dir/models
+if [ -d $model_home ]; then
+    sudo rm -rf $model_home
+fi
+mkdir -p $model_home
+tar -xzvf ./models.tgz -C $model_home > /dev/null
+######################################################################################
+
+
+######################################################################################
+ifsmodule_home=$home_dir/ifsmodule
+if [ -d $ifsmodule_home ]; then
+    sudo rm -rf $ifsmodule_home
+fi
+mkdir -p $ifsmodule_home
 if [[ $mode == "prod" ]]; then
-    if [ -d $home_dir/ifs/environment ]; then
-        sudo rm -rf $home_dir/ifs/environment
-        mkdir -p $home_dir/ifs/environment
-    fi
-    if [ -d $home_dir/ifs/ifsmodule ]; then
-        sudo rm -rf $home_dir/ifs/ifsmodule
-        mkdir -p $home_dir/ifs/ifsmodule
-    fi
-    if [ -d $home_dir/ifs/models ]; then
-        sudo rm -rf $home_dir/ifs/models
-        mkdir -p $home_dir/ifs/models
-    fi
-
-    if [ -f "./environment.tgz" ]; then
-        echo "### Installing ifs environment..."
-        tar -xzvf ./environment.tgz -C $home_dir/ifs > /dev/null
-        echo ""
-    else
-        echo "No environment to update."
-    fi
-
     if [ -f "./ifsmodule.tgz" ]; then
         echo "### Installing ifs ifsmodule..."
-        tar -xzvf ./ifsmodule.tgz -C $home_dir/ifs > /dev/null
+        tar -xzvf ./ifsmodule.tgz -C $ifsmodule_home > /dev/null
         echo ""
     else
         echo "No ifsmodule to update."
-    fi
-
-    if [ -f "./models.tgz" ]; then
-        echo "### Installing ifs models..."
-        tar -xzvf ./models.tgz -C $home_dir/ifs > /dev/null
-        echo ""
-    else
-        echo "No models to update."
     fi
 
     cp -f ./config.json $home_dir/ifs > /dev/null
 else
-    echo "### Dev mode, installing..."
-    if [ -d "./environment" ]; then
-        echo "### Installing ifs environment..."
-        cp -rf ./environment $home_dir/ifs
-        echo ""
-    else
-        echo "No environment to update."
-    fi
-
     if [ -d "./ifsmodule" ]; then
-        echo "### Installing ifs ifsmodule..."
-        cp -rf ./ifsmodule $home_dir/ifs
+        echo "### Installing ifs ifsmodule in dev mode..."
+        cp -rf ./ifsmodule $ifsmodule_home
         echo ""
     else
         echo "No ifsmodule to update."
     fi
 
-    if [ -d "./models" ]; then
-        echo "### Installing ifs models..."
-        cp -rf ./models $home_dir/ifs
-        echo ""
-    else
-        echo "No models to update."
-    fi
-
-    cp -f ./config.json $home_dir/ifs > /dev/null
 fi
 echo ""
+######################################################################################
 
 
-# ######################################################################################
-# echo "### Installing ifs environment..."
-# # if [ -d $home_dir/ifs/environment ]; then
-# #     sudo rm -rf $home_dir/ifs/environment
-# # fi
-# # if [ -f "$home_dir/ifs-build/environment.tgz" ]; then
-# #     echo "updating new environment..."
-# # else
-# #     echo "No environment to update."
-# # fi
+######################################################################################
+# create symlink 
 
-# mkdir -p $home_dir/ifs/environment
-# if [[ $mode == "prod" ]]; then
-#     tar -xzvf $home_dir/ifs-build/environment.tgz -C $home_dir/ifs > /dev/null
-# else
-#     echo "dev mode, copying environment..."
-#     cp -rf ./environment/* $home_dir/ifs/environment
-# fi
-# echo ""
-# ######################################################################################
-
-
-# ######################################################################################
-# echo "### Installing ifs modules..."
-# mkdir -p $home_dir/ifs/ifsmodule
-# if [[ $mode == "prod" ]]; then
-#     tar -xzvf $home_dir/ifs-build/ifsmodule.tgz -C $home_dir/ifs > /dev/null
-# else
-#     echo "dev mode, copying ifs modules..."
-#     cp -rf ./ifsmodule/* $home_dir/ifs/ifsmodule
-# fi
-# echo ""
-# ######################################################################################
-
-
-# ######################################################################################
-# echo "### Check new models..."
-# #dev_models=$(cat $TEMP_DIR/ifs-release/models.tgz)
-# echo ""
-
-# echo "### Copy models..."
-# mkdir -p $home_dir/ifs/models
-# if [[ $mode == "prod" ]]; then
-#     tar -xzvf $home_dir/ifs-build/models.tgz -C $home_dir/ifs > /dev/null
-# else
-#     echo "dev mode, copying models..."
-#     cp -rf ./models/* $home_dir/ifs/models
-# fi
-# echo ""
-# ######################################################################################
+######################################################################################
 
 
 ######################################################################################
@@ -229,32 +181,20 @@ echo ""
 
 mkdir -p $home_dir/ifs/cache
 chmod a+w -R $home_dir/ifs/cache
-# mkdir -p $home_dir/ifs/cache/nii
-# chmod a+w -R $home_dir/ifs/cache/nii
 
 
 source $home_dir/.profile
 
-# # start mock server
-echo "### Start mock tasks queue"
-mkdir -p $home_dir/ifs/PredictorMock
-if [[ $mode == "prod" ]]; then
-    tar -xzvf ./PredictorMock.tgz -C $home_dir/ifs > /dev/null
-else
-    echo "dev mode, starting mock server..."
-    cp -rf ./PredictorMock/* $home_dir/ifs/PredictorMock
-fi
 
-# ./start_ifs.sh 
+# # # start mock server
+# echo "### Start mock tasks queue"
+# mkdir -p $home_dir/ifs/PredictorMock
+# if [[ $mode == "prod" ]]; then
+#     tar -xzvf ./PredictorMock.tgz -C $home_dir/ifs > /dev/null
+# else
+#     echo "dev mode, starting mock server..."
+#     cp -rf ./PredictorMock/* $home_dir/ifs/PredictorMock
+# fi
 
-# cd $home_dir/ifs/PredictorMock
-# python3 manage.py runserver &
 
-# sleep 5
-
-# # start ifs
-# echo "### Start IFS server"
-# ifs-env start
-
-# pm2 log predictor
 
