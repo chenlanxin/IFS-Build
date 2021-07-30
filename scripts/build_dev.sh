@@ -1,6 +1,6 @@
 mode=dev
 version=1.0
-cur_dir=/home/ifsr/Developer/IFS-Executor
+cur_dir=/home/biomind/Developer/IFS-Executor
 deps_dir=$cur_dir/deps
 build_dir=/home/ifsr/IFS-Build-Packages/euler-latest
 mkdir -p $build_dir
@@ -13,11 +13,12 @@ env_path=$cur_dir/environment
 # cp -rf $env_path/python $build_dir/environment
 # cp -rf $env_path/cuda $build_dir/environment
 # cp -rf $env_path/triton $build_dir/environment
-tar -czvf $build_dir/environment/pip.tgz $env_path/pip
-tar -czvf $build_dir/environment/pm2.tgz $env_path/pm2
-tar -czvf $build_dir/environment/python.tgz $env_path/python
-tar -czvf $build_dir/environment/cuda.tgz $env_path/cuda
-tar -czvf $build_dir/environment/triton.tgz $env_path/triton
+cd $env_path
+tar -czvf $build_dir/environment/pip.tgz ./pip
+tar -czvf $build_dir/environment/pm2.tgz ./pm2
+tar -czvf $build_dir/environment/python.tgz ./python
+tar -czvf $build_dir/environment/cuda.tgz ./cuda
+tar -czvf $build_dir/environment/triton.tgz ./triton
 
 
 # copy nvidia-driver
@@ -25,7 +26,8 @@ cp -r $cur_dir/nvidia-driver-installation $build_dir/
 
 
 # # # build models
-# tar -czvf $build_dir/models.tgz ./models
+model_path=/home/biomind/IFS-Model-Repository
+tar -czvf $build_dir/models.tgz ./models
 
 # # build PredictorMock
 # tar -czvf $build_dir/PredictorMock.tgz ./PredictorMock

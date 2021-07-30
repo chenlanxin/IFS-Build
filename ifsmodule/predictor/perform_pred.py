@@ -19,6 +19,7 @@ task_num = cfg['task_num']
 get_task_endpoint = cfg['get_task_endpoint']
 update_task_endpoint = cfg['update_task_endpoint']
 get_task_sleep_time = cfg['get_task_sleep_time']
+mode = cfg['mode']
 
 pred_map = {
     'braincta_predictor':    'pred_headcta',
@@ -50,7 +51,7 @@ def npy2str(ndarr):
     return base64.b64encode(zlib.compress(ndarr.dumps(), 9)).decode()
 
 def pred_generalcta(img_path, job_id, cache_path):
-    from ifsag.gnelcta.ifsr import MainApi
+    from pltag.gnelcta.pilt import MainApi
     main_api = MainApi(mode=mode, pkg=pkg)
     print(f'inference server initialted')
 
@@ -62,7 +63,7 @@ def pred_generalcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -71,7 +72,7 @@ def pred_generalcta(img_path, job_id, cache_path):
     return cta_results, pred_duration
 
 def pred_hdnkcta(img_path, job_id, cache_path):
-    from ifsag.hdnkcta.ifsr import MainApi
+    from pltag.hdnkcta.pilt import MainApi
     main_api = MainApi(mode=mode, pkg=pkg)
     print(f'inference server initialted')
 
@@ -83,7 +84,7 @@ def pred_hdnkcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -92,7 +93,7 @@ def pred_hdnkcta(img_path, job_id, cache_path):
     return cta_results, pred_duration
 
 def pred_corocta(img_path, job_id, cache_path):
-    from ifsag.corocta.ifsr import MainApi
+    from pltag.corocta.pilt import MainApi
     main_api = MainApi(mode=mode, pkg=pkg)
     print(f'inference server initialted')
 
@@ -104,7 +105,7 @@ def pred_corocta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -113,7 +114,7 @@ def pred_corocta(img_path, job_id, cache_path):
     return cta_results, pred_duration
 
 def pred_headcta(img_path, job_id, cache_path):
-    from ifsag.headcta.ifsr import MainApi
+    from pltag.headcta.pilt import MainApi
     main_api = MainApi(mode=mode, pkg=pkg)
     print(f'inference server initialted')
 
@@ -125,7 +126,7 @@ def pred_headcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -134,7 +135,7 @@ def pred_headcta(img_path, job_id, cache_path):
     return cta_results, pred_duration
 
 def pred_archcta(img_path, job_id, cache_path):
-    from ifsag.archcta.ifsr import MainApi
+    from pltag.archcta.pilt import MainApi
     main_api = MainApi(mode=mode, pkg=pkg)
     print(f'inference server initialted')
 
@@ -146,12 +147,11 @@ def pred_archcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr)
+        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
         print('-' * 100)
-    print(f"task jobid[{job_id}] done, check cache path [{cache_path}]")
 
     return cta_results, pred_duration
 
@@ -219,14 +219,17 @@ def update_task(update_task_url, input):
         print(f"failed to POST {update_task_url}: {e}")
 
 def request_annotation(input_data):
+    '''
+    input_data = {
+        "job_uid": job_uid,
+        'task_uid': task_uid,
+        'vol_id': vol_id,
+        'predictor': predictor,
+        "cache_path": cache_path,
+        "payload": result
+    }
+    '''
     anno_url = f"{annotation_host}/annotation/predict/"
-    # res_protocol_path = os.path.join(cache_path, "payload_output.json")
-    # input_data = {
-    #     "job_uid": job_uid,
-    #     'task_uid': task_uid,
-    #     'predictor': predictor,
-    #     "cache_path": cache_path,
-    # }
     res = requests.post(anno_url, data=input_data)
     print(res.status_code)
     if res.status_code == 201:
@@ -285,7 +288,6 @@ while 1:
                 # ['auto', 'config', 'status', 'job_uid', 'task_uid', 'predictor', 'study_uid', 'cache_path', 'status_code', 'classifier_series']
                 payload = task['payload']
                 ts = time.time()
-                
                 job_uid = payload['job_uid']
                 task_uid = payload['task_uid']
                 classifier_series = payload['classifier_series']
@@ -299,7 +301,7 @@ while 1:
                         vol_file = v['vol_url']
                         break
                 new_vol_id = vol_id.split('.vol')[0]
-                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{new_vol_id}' #payload['cache_path']
+                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{new_vol_id}' 
                 if not os.path.exists(cache_path):
                     os.makedirs(cache_path)
                 print(f'Predicting {predictor}...')
@@ -314,9 +316,11 @@ while 1:
                         "module": predictor
                     }
                     task['payload']['status_code'].append(error_dict)
-                    print(task)
+                    print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
+                
+                # start predicting
                 try:
                     result, pred_duration = eval(pred_map[predictor])(tmp_file, task_uid, cache_path)
                 except:
@@ -330,18 +334,20 @@ while 1:
                     print(task['payload']['status_code'])
                     update_task(update_task_url, task)
                     continue
-                if isinstance(result, str):
-                    # update task: error
-                    task['status'] = 30
-                    error_dict = {
-                        "code": result,
-                        "info": "error during prediction",
-                        "module": predictor
-                    }
-                    task['payload']['status_code'].append(error_dict)
-                    print(task['payload']['status_code'])
-                    update_task(update_task_url, task)
-                    continue
+
+                # # catch statuscode 
+                # if isinstance(result, str):
+                #     # update task: error
+                #     task['status'] = 30
+                #     error_dict = {
+                #         "code": result,
+                #         "info": "error during prediction",
+                #         "module": predictor
+                #     }
+                #     task['payload']['status_code'].append(error_dict)
+                #     print(task['payload']['status_code'])
+                #     update_task(update_task_url, task)
+                #     continue
 
                 task_duration = time.time() - ts 
                 call_back = {
@@ -353,49 +359,24 @@ while 1:
                     'pred_duration': pred_duration
                 }
                 print(call_back)
-                
-                # do annotation
-                anno_duration = 0
-                input_data = {
-                    "job_uid": job_uid,
-                    'task_uid': task_uid,
-                    'vol_id': vol_id,
-                    'predictor': predictor,
-                    "cache_path": cache_path,
-                    "payload": result
-                }
-                ts = time.time()
-                anno_res = request_annotation(input_data)
-                anno_duration = time.time() - ts
-               
 
                 # update task: finished
                 task['status'] = 20
-                task['payload'].update(anno_res)
+                task['payload'].update(result[0])
                 update_task(update_task_url, task)
                 
                 # delete nii file if not in mock mode
                 if not mock_flg:
                     os.system(f'rm -f {tmp_file}')
-
-                call_back = {
-                    'job_uid': job_uid,
-                    'task_uid': task_uid,
-                    'predictor': predictor,
-                    'task_status': 'done',
-                    'task_duration': task_duration,
-                    'pred_duration': pred_duration,
-                    'anno_duration': anno_duration
-                }
-                print(call_back)
                 
+
                 # post duration to dashboard
-                try:
-                    post_duration_prom('duration_job', predictor, task_duration)
-                    post_duration_prom('duration_pred', predictor, pred_duration)
-                    post_duration_prom('duration_anno', predictor, anno_duration)
-                except:
-                    print('No prometheus service found.')
+                if mode == 'dev':
+                    try:
+                        post_duration_prom('duration_job', predictor, task_duration)
+                        post_duration_prom('duration_pred', predictor, pred_duration)
+                    except:
+                        print('No prometheus service found.')
                 
                 try:
                     # write duration to csv file
@@ -409,11 +390,10 @@ while 1:
                             'job_uid',
                             'task_duration',
                             'pred_duration',
-                            'anno_duration'
                             'vol_file'
                         ]
                         write_res2csv(csv_path, head_row)
-                    row_list = [predictor, task_uid, job_uid, task_duration, pred_duration, anno_duration, vol_file]
+                    row_list = [predictor, task_uid, job_uid, task_duration, pred_duration, vol_file]
                     write_res2csv(csv_path, row_list)
                 except Exception as e:
                     print(f'failed to write csv file, {e}')
@@ -424,17 +404,11 @@ while 1:
                 task['status'] = 30
                 error_dict = {
                     "code": "model_vessel_0009",
-                    "info": "error occurs before prediction, or in annotation",
+                    "info": "error occurs before prediction",
                     "module": predictor
                 }
                 task['payload']['status_code'].append(error_dict)
                 print(task['payload']['status_code'])
                 update_task(update_task_url, task)
-                '''
-                "model_vessel_0009": {
-                "type": "error",
-                "en-us": "failed to do annotation",
-                "zh-cn": "后处理annotation失败"
-                }
-                '''
+    
 

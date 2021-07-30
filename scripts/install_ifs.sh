@@ -8,8 +8,9 @@ set -e
 # start predictor
 
 
-home_dir=/home/ifsr/.ifsr
-mkdir -p $home_dir
+home_dir=/home/ifsr
+ifsr_home=$home_dir/.ifsr
+mkdir -p $ifsr_home
 mode=$1
 
 # cleanup() {
@@ -42,9 +43,6 @@ fi
 
 # pushd $TEMP_DIR
 
-# echo "### Extracting IFS build packages..."
-# cp -r $home_dir/ifs-release .
-# echo ""
 
 # sudo chown -R biomind:biomind .
 
@@ -71,19 +69,18 @@ fi
 # sudo apt install -y -o dir::cache=./apt/dev -o dir::state::lists=./apt/lists -o dir::etc::sourcelist=./apt/sources.list $dev_pkgs
 
 
-# mkdir -p $home_dir/ifs
 
 
 ######################################################################################
 # copy config.json
-cp -f ./config.json $home_dir/ > /dev/null
+cp -f ./config.json $ifsr_home/ > /dev/null
 ######################################################################################
 
 
 ######################################################################################
 # install the environment
 echo "### Installing ifs environment..."
-env_home=$home_dir/environment
+env_home=$ifsr_home/environment
 if [ -d $env_home ]; then
     sudo rm -rf $env_home
 fi
@@ -99,35 +96,34 @@ tar -xzvf ./environment/triton.tgz -C $env_home > /dev/null
 ######################################################################################
 # install the models
 echo "### Installing ifs models..."
-model_home=$home_dir/models
+model_home=$ifsr_home/models
 if [ -d $model_home ]; then
     sudo rm -rf $model_home
 fi
 mkdir -p $model_home
-tar -xzvf ./models.tgz -C $model_home > /dev/null
+tar -xzvf ./models.tgz -C $ifsr_home > /dev/null
 ######################################################################################
 
 
 ######################################################################################
-ifsmodule_home=$home_dir/ifsmodule
+ifsmodule_home=$ifsr_home/ifsmodule
 if [ -d $ifsmodule_home ]; then
     sudo rm -rf $ifsmodule_home
 fi
-mkdir -p $ifsmodule_home
+# mkdir -p $ifsmodule_home
 if [[ $mode == "prod" ]]; then
     if [ -f "./ifsmodule.tgz" ]; then
         echo "### Installing ifs ifsmodule..."
-        tar -xzvf ./ifsmodule.tgz -C $ifsmodule_home > /dev/null
+        tar -xzvf ./ifsmodule.tgz -C $ifsr_home > /dev/null
         echo ""
     else
         echo "No ifsmodule to update."
     fi
 
-    cp -f ./config.json $home_dir/ifs > /dev/null
 else
     if [ -d "./ifsmodule" ]; then
         echo "### Installing ifs ifsmodule in dev mode..."
-        cp -rf ./ifsmodule $ifsmodule_home
+        cp -rf ./ifsmodule $ifsr_home
         echo ""
     else
         echo "No ifsmodule to update."
@@ -151,9 +147,9 @@ if [ -f $home_dir/.profile ]; then
 else
     sudo touch $home_dir/.profile
 fi
-source_profile_inject="source \"$home_dir/ifs/ifsmodule/scripts/profile.sh\""
-if [[ $(cat /home/biomind/.profile | grep "$source_profile_inject" | wc -l) == "0" ]]; then
-    echo "$source_profile_inject" >> /home/biomind/.profile
+source_profile_inject="source \"$ifsr_home/ifsmodule/scripts/profile.sh\""
+if [[ $(cat $home_dir/.profile | grep "$source_profile_inject" | wc -l) == "0" ]]; then
+    echo "$source_profile_inject" >> $home_dir/.profile
     echo "Injected environment script... Please re-login."
 else
     echo "Environment script existed..."
@@ -162,9 +158,9 @@ echo ""
 
 if [ -f $home_dir/.zshrc ]; then
     echo "### Inject environment .zshrc script..."
-    source_profile_inject="source \"$home_dir/ifs/ifsmodule/scripts/profile.sh\""
-    if [[ $(cat /home/biomind/.zshrc | grep "$source_profile_inject" | wc -l) == "0" ]]; then
-        echo "$source_profile_inject" >> /home/biomind/.zshrc
+    source_profile_inject="source \"$ifsr_home/ifsmodule/scripts/profile.sh\""
+    if [[ $(cat $home_dir/.zshrc | grep "$source_profile_inject" | wc -l) == "0" ]]; then
+        echo "$source_profile_inject" >> $home_dir/.zshrc
         echo "Injected environment to zshrc."
     else
         echo "Environment script zshrc existed..."
@@ -175,12 +171,12 @@ fi
 
  
 echo "### Setup ifs boot"
-# $home_dir/ifs/environment/scripts/ifs-env setup-systemd
+# $ifsr_home/ifsmodule/scripts/ifs-env setup-systemd
 echo ""
 # sudo systemctl start ifs-environment
 
-mkdir -p $home_dir/ifs/cache
-chmod a+w -R $home_dir/ifs/cache
+mkdir -p $ifsr_home/cache
+chmod a+w -R $ifsr_home/cache
 
 
 source $home_dir/.profile

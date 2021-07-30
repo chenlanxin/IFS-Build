@@ -4,6 +4,7 @@
     "get_task_endpoint": "/euler/get_task/",
     "get_task_sleep_time": 5,
     "update_task_endpoint": "/euler/update_task",
+    "mode": "prod",
     "annotation_host": "http://localhost:9999"
 }
 
