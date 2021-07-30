@@ -1,7 +1,8 @@
 {
-    "queue_host": ["http://127.0.0.1:8000"],
+    "queue_host": ["http://192.168.2.201:8000"],
     "task_num": 1,
     "get_task_endpoint": "/euler/get_task/",
+    "get_task_sleep_time": 5,
     "update_task_endpoint": "/euler/update_task",
     "annotation_host": "http://localhost:9999"
 }

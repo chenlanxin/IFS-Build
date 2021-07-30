@@ -1,4 +1,4 @@
-cur_dir=/home/biomind/Developer/IFS-Build
+cur_dir=/home/biomind/Developer/IFS-Executor
 home_dir=/home/biomind/.biomind/ifs
 model_home=$home_dir/models/current
 annotation_home=$home_dir/ifsmodule/annotation/current
@@ -130,7 +130,7 @@ fi
 if [[ $new_predictor == "true" ]]; then
     echo "Updating predictor."
     rm -rf $predictor_home/*
-    cp -rf $cur_dir/ifsmodule/predictor/latest/* $predictor_home/
+    cp -rf $cur_dir/ifsmodule/predictor/* $predictor_home/
     echo "--------------------------------"
 fi
 

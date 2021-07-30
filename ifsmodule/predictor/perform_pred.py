@@ -18,13 +18,15 @@ annotation_host = cfg['annotation_host']
 task_num = cfg['task_num']
 get_task_endpoint = cfg['get_task_endpoint']
 update_task_endpoint = cfg['update_task_endpoint']
+get_task_sleep_time = cfg['get_task_sleep_time']
 
 pred_map = {
     'braincta_predictor':    'pred_headcta',
     'headneckcta_predictor': 'pred_hdnkcta',
     'archcta_predictor':     'pred_archcta',
     'corocta_predictor':     'pred_corocta',
-    'lungct_v2_predictor':      'pred_lungct'
+    'lungct_v2_predictor':      'pred_lungct',
+    'cta_predictor':         'pred_generalcta'
 }
 mode = 'ifstime'
 pkg = ''
@@ -46,6 +48,27 @@ def nii_img_reader(img_dir, is_normalize=False):
 
 def npy2str(ndarr):
     return base64.b64encode(zlib.compress(ndarr.dumps(), 9)).decode()
+
+def pred_generalcta(img_path, job_id, cache_path):
+    from ifsag.gnelcta.ifsr import MainApi
+    main_api = MainApi(mode=mode, pkg=pkg)
+    print(f'inference server initialted')
+
+    ts = time.time()
+    img_arr, sitk_ = nii_img_reader(img_path)
+    load_duration = time.time() - ts
+    print(f'loaded data shape: {img_arr.shape}')
+    print(f'loaded data in {load_duration}s')
+
+    for i in range(1):
+        ts = time.time()
+        cta_results = main_api.ifsr(sitk_, img_arr)
+        pred_duration = time.time() - ts            
+        print('-' * 100)
+        print(f'{i}th operation done in {pred_duration}s')
+        print('-' * 100)
+
+    return cta_results, pred_duration
 
 def pred_hdnkcta(img_path, job_id, cache_path):
     from ifsag.hdnkcta.ifsr import MainApi
@@ -175,7 +198,7 @@ def download_inputdata(url, task_uid, cache_path):
         ts = time.time()
         if not os.path.exists(cache_path):
             os.makedirs(cache_path)
-        tmp_file = os.path.join(cache_path, f'{task_uid}.nii.gz')
+        tmp_file = os.path.join(cache_path, f'{task_uid}.nrrd')
         cmd = f"curl '{url}' -o {tmp_file} -k"
         os.system(cmd)
         print(f"Downloading data takes {time.time() - ts} seconds.")
@@ -240,7 +263,7 @@ while 1:
         tasks = get_tasks(get_tasks_url)
         if len(tasks) == 0:
             #print('No task found.')
-            time.sleep(1)
+            time.sleep(get_task_sleep_time)
             # tasks = get_tasks(get_tasks_url)
             continue
         for task in tasks:
@@ -275,7 +298,8 @@ while 1:
                         vol_id = k
                         vol_file = v['vol_url']
                         break
-                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{vol_id}' #payload['cache_path']
+                new_vol_id = vol_id.split('.vol')[0]
+                cache_path = f'/home/biomind/.biomind/ifs/cache/{predictor}/{new_vol_id}' #payload['cache_path']
                 if not os.path.exists(cache_path):
                     os.makedirs(cache_path)
                 print(f'Predicting {predictor}...')
