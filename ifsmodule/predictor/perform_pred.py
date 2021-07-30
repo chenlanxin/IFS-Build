@@ -363,6 +363,9 @@ while 1:
                 # update task: finished
                 task['status'] = 20
                 task['payload'].update(result[0])
+                result_path = os.path.join(cache_path, f'{predictor}_payload_output.json')
+                with open(result_path, 'w') as f:
+                    json.dump(task, f)
                 update_task(update_task_url, task)
                 
                 # delete nii file if not in mock mode
