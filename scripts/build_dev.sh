@@ -1,7 +1,8 @@
 mode=dev
 version=1.0
-cur_dir=/home/biomind/Developer/IFS-Executor
-build_dir=/home/biomind/euler-latest
+cur_dir=/home/ifsr/Developer/IFS-Executor
+deps_dir=$cur_dir/deps
+build_dir=/home/ifsr/IFS-Build-Packages/euler-latest
 mkdir -p $build_dir
 
 # build environment
@@ -48,6 +49,9 @@ mkdir -p $annotation_dir
 mlmodule_dir=$ifsmodule_dir/mlmodule/$version
 mkdir -p $mlmodule_dir
 
+cp -rf $cur_dir/ifsmodule/predictor/* $predictor_dir
+cp -rf $cur_dir/ifsmodule/scripts/* $scripts_dir
+
 new_ifsag=true
 declare -A ifsag
 ifsag=(
@@ -69,7 +73,7 @@ if [[ $new_ifsag == "true" ]]; then
     echo "--------------------------------"
 fi
 
-new_ifschest=false
+new_ifschest=true
 declare -A ifschest
 ifschest=(
     [repo_name]="IFS-Chest-CT" 
