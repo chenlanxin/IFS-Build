@@ -63,7 +63,7 @@ def pred_generalcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
+        cta_results = main_api.pilt(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -84,7 +84,7 @@ def pred_hdnkcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
+        cta_results = main_api.pilt(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -105,7 +105,7 @@ def pred_corocta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
+        cta_results = main_api.pilt(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -126,7 +126,7 @@ def pred_headcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
+        cta_results = main_api.pilt(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')
@@ -147,7 +147,7 @@ def pred_archcta(img_path, job_id, cache_path):
 
     for i in range(1):
         ts = time.time()
-        cta_results = main_api.ifsr(sitk_, img_arr, cache_path)
+        cta_results = main_api.pilt(sitk_, img_arr, cache_path)
         pred_duration = time.time() - ts            
         print('-' * 100)
         print(f'{i}th operation done in {pred_duration}s')

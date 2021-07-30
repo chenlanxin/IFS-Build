@@ -83,7 +83,7 @@ export PYTHONPATH=$PYTHONPATH
 #export LD_LIBRARY_PATH=
 
 export CUDA_DEVICE_ORDER=PCI_BUS_ID 
-# export CUDA_VISIBLE_DEVICES=1
+export CUDA_VISIBLE_DEVICES=0
 
 # export PATH=/home/biomind/lanxin/ifs-build/cuda-11.1/bin:$PATH
 # export LD_LIBRARY_PATH=/home/biomind/lanxin/ifs-build/cuda-11.1/lib64:$LD_LIBRARY_PATH

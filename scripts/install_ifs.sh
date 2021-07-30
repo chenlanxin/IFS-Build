@@ -177,15 +177,15 @@ fi
 #create symlink
 rm -f $ifsmodule_home/annotation/current
 cd $ifsmodule_home/annotation
-ln -s $model_home/annotation/$version current
+ln -s $ifsmodule_home/annotation/$version current
 #create symlink
 rm -f $ifsmodule_home/mlmodule/current
 cd $ifsmodule_home/mlmodule
-ln -s $model_home/mlmodule/$version current
+ln -s $ifsmodule_home/mlmodule/$version current
 #create symlink
 rm -f $ifsmodule_home/predictor/current
 cd $ifsmodule_home/predictor
-ln -s $model_home/predictor/$version current
+ln -s $ifsmodule_home/predictor/$version current
 ######################################################################################
 
 ######################################################################################
