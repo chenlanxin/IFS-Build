@@ -7,6 +7,10 @@ predictor_home=$home_dir/ifsmodule/predictor/current
 scripts_home=$home_dir/ifsmodule/scripts
 deps_dir=$cur_dir/deps
 
+######################################################################################
+# create symlink 
+
+######################################################################################
 
 new_predictor=true
 new_scripts=true

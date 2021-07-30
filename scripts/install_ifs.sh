@@ -12,6 +12,7 @@ home_dir=/home/ifsr
 ifsr_home=$home_dir/.ifsr
 mkdir -p $ifsr_home
 mode=$1
+version=$2
 
 # cleanup() {
 #     if [[ $TEMP_DIR && -d $TEMP_DIR ]]; then
@@ -72,8 +73,10 @@ fi
 
 
 ######################################################################################
-# copy config.json
+# copy config.json, create cache path
 cp -f ./config.json $ifsr_home/ > /dev/null
+mkdir -p $ifsr_home/cache
+chmod a+w -R $ifsr_home/cache
 ######################################################################################
 
 
@@ -85,11 +88,48 @@ if [ -d $env_home ]; then
     sudo rm -rf $env_home
 fi
 mkdir -p $env_home
+
 tar -xzvf ./environment/cuda.tgz -C $env_home > /dev/null
-tar -xzvf ./environment/pip.tgz -C $env_home > /dev/null
-tar -xzvf ./environment/pm2.tgz -C $env_home > /dev/null
-tar -xzvf ./environment/python.tgz -C $env_home > /dev/null
+#create symlink
+rm -f $env_home/cuda/current
+cd $env_home/cuda
+ln -s $env_home/cuda/cuda-11.3 current
+
 tar -xzvf ./environment/triton.tgz -C $env_home > /dev/null
+#create symlink
+rm -f $env_home/triton/current
+cd $env_home/triton
+ln -s $env_home/triton/1.0 current
+
+if [ -f "./environment/pip.tgz" ]; then
+    tar -xzvf ./environment/pip.tgz -C $env_home > /dev/null
+else
+    cp -rf ./environment/pip $env_home
+fi
+#create symlink
+rm -f $env_home/pip/current
+cd $env_home/pip
+ln -s $env_home/pip/1.0 current
+
+if [ -f "./environment/pm2.tgz" ]; then
+    tar -xzvf ./environment/pm2.tgz -C $env_home > /dev/null
+else
+    cp -rf ./environment/pm2 $env_home
+fi
+#create symlink
+rm -f $env_home/pm2/current
+cd $env_home/pm2
+ln -s $env_home/pm2/4.5.0 current
+
+if [ -f "./environment/python.tgz" ]; then
+    tar -xzvf ./environment/python.tgz -C $env_home > /dev/null
+else
+    cp -rf ./environment/python $env_home
+fi
+#create symlink
+rm -f $env_home/python/current
+cd $env_home/python
+ln -s $env_home/python/3.9.5 current
 ######################################################################################
 
 
@@ -102,6 +142,10 @@ if [ -d $model_home ]; then
 fi
 mkdir -p $model_home
 tar -xzvf ./models.tgz -C $ifsr_home > /dev/null
+#create symlink
+rm -f $model_home/current
+cd $model_home
+ln -s $model_home/$version current
 ######################################################################################
 
 
@@ -130,15 +174,19 @@ else
     fi
 
 fi
-echo ""
+#create symlink
+rm -f $ifsmodule_home/annotation/current
+cd $ifsmodule_home/annotation
+ln -s $model_home/annotation/$version current
+#create symlink
+rm -f $ifsmodule_home/mlmodule/current
+cd $ifsmodule_home/mlmodule
+ln -s $model_home/mlmodule/$version current
+#create symlink
+rm -f $ifsmodule_home/predictor/current
+cd $ifsmodule_home/predictor
+ln -s $model_home/predictor/$version current
 ######################################################################################
-
-
-######################################################################################
-# create symlink 
-
-######################################################################################
-
 
 ######################################################################################
 echo "### Inject environment profile script..."
@@ -174,9 +222,6 @@ echo "### Setup ifs boot"
 # $ifsr_home/ifsmodule/scripts/ifs-env setup-systemd
 echo ""
 # sudo systemctl start ifs-environment
-
-mkdir -p $ifsr_home/cache
-chmod a+w -R $ifsr_home/cache
 
 
 source $home_dir/.profile

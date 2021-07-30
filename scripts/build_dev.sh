@@ -24,9 +24,9 @@ tar -czvf $build_dir/environment/triton.tgz ./triton
 # copy nvidia-driver
 cp -r $cur_dir/nvidia-driver-installation $build_dir/
 
-
 # # # build models
 model_path=/home/biomind/IFS-Model-Repository
+cd $model_path
 tar -czvf $build_dir/models.tgz ./models
 
 # # build PredictorMock
