@@ -180,7 +180,7 @@ def get_tasks(get_tasks_url):
     try:
         # import urllib3
         # urllib3.disable_warnings()
-        resp = requests.get(get_tasks_url, verify=False)
+        resp = requests.get(get_tasks_url, verify=False, timeout=15)
         if resp.status_code == 200:
             res = resp.json()
             tasks = res['data']
@@ -208,7 +208,7 @@ def download_inputdata(url, task_uid, cache_path):
 
 def update_task(update_task_url, input):
     try:
-        resp = requests.post(update_task_url, json=input, verify=False)
+        resp = requests.post(update_task_url, json=input, verify=False, timeout=15)
         print(resp.status_code)
         if resp.status_code == 200:
             status = input['status']
@@ -230,7 +230,7 @@ def request_annotation(input_data):
     }
     '''
     anno_url = f"{annotation_host}/annotation/predict/"
-    res = requests.post(anno_url, data=input_data)
+    res = requests.post(anno_url, data=input_data, timeout=30)
     print(res.status_code)
     if res.status_code == 201:
         print(f"Check {input_data['cache_path']} for result protocols.")
