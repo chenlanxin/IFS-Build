@@ -1,6 +1,6 @@
 # == IFSEnv Begin
 
-export IFS_HOME=/home/biomind/.biomind/ifs
+export IFS_HOME=/home/ifsr/.ifsr
 export IFS_ENV_PATH=$IFS_HOME/environment
 export IFS_MODULE_PATH=$IFS_HOME/ifsmodule
 export IFS_VAR_PATH=$IFS_HOME/var
@@ -84,11 +84,6 @@ export PYTHONPATH=$PYTHONPATH
 
 export CUDA_DEVICE_ORDER=PCI_BUS_ID 
 export CUDA_VISIBLE_DEVICES=0
-
-# export PATH=/home/biomind/lanxin/ifs-build/cuda-11.1/bin:$PATH
-# export LD_LIBRARY_PATH=/home/biomind/lanxin/ifs-build/cuda-11.1/lib64:$LD_LIBRARY_PATH
-# export C_INCLUDE_PATH=/home/biomind/lanxin/ifs-build/cuda-11.1/include:$C_INCLUDE_PATH
-# export CPLUS_INCLUDE_PATH=/home/biomind/lanxin/ifs-build/cuda-11.1/include:$CPLUS_INCLUDE_PATH
 
 echo ""
 
